@@ -17,8 +17,9 @@ class PronosticadorPartidos {
         this.RANGOS_CORNERS = [3.5, 5.5, 7.5, 9.5, 11.5]; // Umbrales para menos/más tiros de esquina
         
         // Factores de ajuste para diferentes condiciones de juego
-        this.FACTOR_LOCAL = 1.07; // Ventaja de jugar en casa (+7%)
-        this.FACTOR_VISITANTE = 0.97; // Desventaja de jugar de visitante (-3%)
+
+        this.FACTOR_LOCAL = 1.15; // Ventaja de jugar en casa (+15%)
+        this.FACTOR_VISITANTE = 0.95; // Desventaja de jugar de visitante (-5%)
         
         // TODO: Mejoras futuras del algoritmo:
         // - Consideración de rendimiento local vs visitante específico por equipo
