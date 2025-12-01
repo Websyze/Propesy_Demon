@@ -98,25 +98,15 @@ const server = http.createServer((req, res) => {
   }
 
 
-  // Rutas de archivos estáticos
-  if (pathname === '/' || pathname === '/index.html') {
-    serveStaticFile(res, path.join(__dirname, 'public', 'index.html'));
-    return;
-  }
+  // Rutas de archivos estáticos (genéricas bajo /public)
+  if (!pathname.startsWith('/api/')) {
+    const publicRoot = path.join(__dirname, 'public');
+    const requested = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+    const filePath = path.normalize(path.join(publicRoot, requested));
 
-  if (pathname === '/styles.css') {
-    serveStaticFile(res, path.join(__dirname, 'public', 'styles.css'));
-    return;
-  }
-
-  if (pathname === '/app.js') {
-    serveStaticFile(res, path.join(__dirname, 'public', 'app.js'));
-    return;
-  }
-
-  if (pathname === '/pronosticos/predictor.js') {
-    serveStaticFile(res, path.join(__dirname, 'public', 'pronosticos', 'predictor.js'));
-    return;
+    if (filePath.startsWith(publicRoot)) {
+      return serveStaticFile(res, filePath);
+    }
   }
 
   // API Routes
