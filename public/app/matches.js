@@ -7,8 +7,15 @@ import { verDetallePartido as openDetallePartido } from './matches.js';
 import { verLiga } from './leagues.js';
 import { mostrarVista } from './views.js';
 
+// Notas del módulo:
+// - Las validaciones básicas (equipos distintos, duplicidad en jornada) previenen inconsistencias.
+// - El formulario de detalle permite registrar estadísticas posteriores al resultado simple.
+// - Se reutiliza PUT /partidos/:id para resultado y para stats completas (backend debe tolerar ambas formas).
+
 /** Muestra la vista previa del enfrentamiento según selects de equipos */
 export function actualizarPreviewPartidos() {
+  // Cuando el usuario selecciona local/visitante se muestra una tarjeta preview.
+  // Oculta si faltan ids o son iguales.
   const localId = parseInt(document.getElementById('partido-local').value);
   const visitanteId = parseInt(document.getElementById('partido-visitante').value);
   const previewContainer = document.getElementById('preview-partido');
@@ -33,6 +40,7 @@ export function actualizarPreviewPartidos() {
 
 /** Alta de un nuevo partido validando duplicidad y equipos distintos */
 export async function handleAgregarPartido(e) {
+  // Crea partido básico (sin stats) y refresca la vista de la liga.
   e.preventDefault();
   const localId = parseInt(document.getElementById('partido-local').value);
   const visitanteId = parseInt(document.getElementById('partido-visitante').value);
@@ -61,6 +69,7 @@ export async function handleAgregarPartido(e) {
 
 /** Lista de partidos pendientes (si se usa este bloque en la UI) */
 export function mostrarPartidosPendientes(partidos, equipos) {
+  // Genera listado de partidos no jugados con formulario inline para resultado rápido.
   const container = document.getElementById('partidos-pendientes');
   const pendientes = Array.isArray(partidos) ? partidos.filter(p => !p.jugado) : [];
   if (pendientes.length === 0) {
@@ -97,6 +106,7 @@ export function mostrarPartidosPendientes(partidos, equipos) {
 
 /** PUT de resultado simple del partido (sin estadísticas) */
 export async function registrarResultado(e, partidoId) {
+  // Registra solo goles finales. Stats se añaden luego desde el detalle.
   e.preventDefault();
   const golesLocal = parseInt(document.getElementById(`goles-local-${partidoId}`).value);
   const golesVisitante = parseInt(document.getElementById(`goles-visitante-${partidoId}`).value);
@@ -115,6 +125,7 @@ export async function registrarResultado(e, partidoId) {
 
 /** Abre formulario de estadísticas para un partido concreto */
 export async function verDetallePartido(partidoId) {
+  // Abre pantalla para editar o crear estadísticas del partido seleccionado.
   if (!ligaActual) { alert('Por favor, selecciona una liga primero'); return; }
   const partido = ligaActual.partidos.find(p => p.id === partidoId);
   if (!partido) { alert('No se encontró el partido'); return; }
@@ -163,6 +174,8 @@ export async function verDetallePartido(partidoId) {
 
 /** Conecta inputs del formulario para calcular totales automáticamente */
 export function configurarCalculosAutomaticos() {
+  // Conecta eventos para mantener consistencia entre goles por tiempo y total mostrado.
+  // También calcula posesión visitante como complemento (100 - local), simplificando inputs.
   const localGolesPrimero = document.getElementById('local-goles-primero');
   const localGolesSegundo = document.getElementById('local-goles-segundo');
   const localGolesDisplay = document.getElementById('goles-local-display');
@@ -209,6 +222,7 @@ export function editarPartido(partidoId) { verDetallePartido(partidoId); }
 
 /** Guarda el detalle de estadísticas completas del partido */
 export async function handleGuardarDetallePartido(e) {
+  // Valida coherencia de goles por tiempo vs total y construye objeto de estadísticas para persistir.
   e.preventDefault();
   const golesLocal = parseInt(document.getElementById('goles-local-display').textContent) || 0;
   const golesVisitante = parseInt(document.getElementById('goles-visitante-display').textContent) || 0;

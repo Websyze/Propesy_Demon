@@ -4,8 +4,15 @@
 import { API_URL } from './api.js';
 import { setPronosticosGlobales, pronosticosGlobales } from './state.js';
 
+// Estrategia de pronósticos:
+// - Se cargan todas las ligas y luego cada detalle para disponer de partidos y stats al calcular.
+// - El cálculo se delega a window.pronosticador (instancia creada en main.js) para separar lógica.
+// - Se cachea el resultado en state para navegación rápida al detalle sin recomputar.
+
 /** Obtiene ligas y genera pronósticos con el pronosticador global */
 export async function generarPronosticos() {
+  // Orquesta la descarga de datos necesarios y luego invoca pronosticador.
+  // Muestra estado de carga mientras se resuelven varias peticiones secuenciales.
   const container = document.getElementById('pronosticos-container');
   try {
     container.innerHTML = `<div id="pronosticos-loading" style="text-align: center; color: #666; padding: 20px;">\n      <p>🔮 Analizando estadísticas y generando pronósticos...</p>\n    </div>`;
@@ -31,6 +38,7 @@ export async function generarPronosticos() {
 
 /** Renderiza la lista de pronósticos por liga */
 export function mostrarPronosticos(pronosticos) {
+  // Renderiza agrupado por liga. Cada partido permite acceder al detalle completo.
   const container = document.getElementById('pronosticos-container');
   if (!Array.isArray(pronosticos) || pronosticos.length === 0) {
     container.innerHTML = `<div class="sin-pronosticos">\n      <h4>📅 No hay partidos pendientes</h4>\n      <p>No se encontraron partidos pendientes para generar pronósticos.<br>Agrega algunos partidos en el tab "Partidos" para ver pronósticos aquí.</p>\n    </div>`;
@@ -45,6 +53,7 @@ export function mostrarPronosticos(pronosticos) {
 
 /** Card con resumen del pronóstico */
 export function generarHTMLPronostico(pronostico) {
+  // Construye card resumida con probabilidades y marcador esperado.
   const local = pronostico.equipoLocal;
   const visitante = pronostico.equipoVisitante;
   const prob = pronostico.probabilidades;
@@ -89,6 +98,7 @@ export function generarHTMLPronostico(pronostico) {
 
 /** Encuentra un pronóstico por liga/partido y muestra la vista detallada */
 export function verDetallePronostico(ligaNombre, partidoId) {
+  // Busca dentro del cache global el pronóstico específico por liga y partido.
   let pronosticoDetallado = null;
   for (const ligaPronostico of pronosticosGlobales) {
     if (ligaPronostico.liga === ligaNombre) {
@@ -107,6 +117,7 @@ export function verDetallePronostico(ligaNombre, partidoId) {
 
 /** Construye el detalle del pronóstico, incluyendo mercados */
 export function generarHTMLPronosticoDetallado(pronostico) {
+  // Vista completa: muestra stats esperadas por equipo y mercados derivados.
   const local = pronostico.equipoLocal;
   const visitante = pronostico.equipoVisitante;
   const prob = pronostico.probabilidades;
@@ -168,6 +179,7 @@ export function generarHTMLPronosticoDetallado(pronostico) {
 
 /** Sección de mercados O/U y especiales */
 export function generarHTMLMercadosApuestas(mercados) {
+  // Genera secciones para mercados disponibles. Cada línea O/U se evalúa para resaltar la opción con mayor prob.
   const buildOverUnderRows = (items, label) => items.map(m => {
     const menosProb = Math.round(m.menos * 100);
     const masProb = Math.round(m.mas * 100);

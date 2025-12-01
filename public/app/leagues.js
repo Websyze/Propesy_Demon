@@ -5,8 +5,15 @@ import { API_URL } from './api.js';
 import { ligaActual, setLigaActual } from './state.js';
 import { mostrarVista } from './views.js';
 
+// Nota general del módulo:
+// - Se prioriza claridad sobre abstracción: cada flujo (cargar, crear, editar) manipula directamente el DOM.
+// - En una evolución futura podría extraerse la generación de HTML a helpers reutilizables o plantillas.
+// - Se confía en la API para devolver estructuras consistentes; validaciones básicas protegen estados vacíos.
+
 /** Carga y renderiza la lista de ligas en la vista de inicio */
 export async function cargarLigas() {
+  // Descarga listado ligero de ligas y pinta tarjetas en la vista inicio.
+  // Si se requiere paginación o búsqueda, aquí sería el punto de extensión.
   try {
     const response = await fetch(`${API_URL}/ligas`);
     const ligas = await response.json();
@@ -30,6 +37,8 @@ export async function cargarLigas() {
 
 /** Maneja el submit para crear una liga nueva */
 export async function handleCrearLiga(e) {
+  // Crea una liga y despliega inmediatamente el paso de edición de equipos.
+  // El backend genera ids y la estructura base de equipos vacíos.
   e.preventDefault();
   const nombre = document.getElementById('nombre-liga').value;
   const numEquipos = parseInt(document.getElementById('num-equipos').value);
@@ -68,6 +77,7 @@ export async function handleCrearLiga(e) {
 
 /** Lee dataURL de imagen seleccionada y actualiza el preview */
 export function previewFoto(input, equipoId) {
+  // Lectura de archivo local -> base64 -> actualización de <img> para feedback rápido al usuario.
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -80,6 +90,8 @@ export function previewFoto(input, equipoId) {
 
 /** Envía al backend los cambios de nombre/foto de todos los equipos */
 export async function handleEditarEquipos(e) {
+  // Construye un nuevo array de equipos con los nombres/fotos editados y lo envía.
+  // Se reusa la ruta PUT /ligas/:id/equipos para actualizar en bloque.
   e.preventDefault();
   const equiposActualizados = ligaActual.equipos.map(equipo => {
     const fotoInput = document.getElementById(`foto-${equipo.id}`);
@@ -102,6 +114,8 @@ export async function handleEditarEquipos(e) {
 
 /** Carga una liga, su tabla, equipos y partidos, y activa la vista */
 export async function verLiga(ligaId) {
+  // Carga versión completa de la liga (tabla calculada, equipos, partidos) y actualiza la vista principal.
+  // Re-renderiza tabs para asegurar estado visual consistente.
   try {
     const response = await fetch(`${API_URL}/ligas/${ligaId}`);
     const liga = await response.json();
@@ -128,6 +142,7 @@ export async function verLiga(ligaId) {
 
 /** Renderiza la tabla de posiciones */
 function mostrarTabla(tabla) {
+  // Renderiza la tabla de posiciones. Si está vacía muestra mensaje.
   const tbody = document.querySelector('#tabla-posiciones tbody');
   if (!Array.isArray(tabla) || tabla.length === 0) {
     tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No hay datos disponibles</td></tr>';
@@ -155,6 +170,7 @@ function mostrarTabla(tabla) {
 
 /** Rellena selects de equipos en la UI de partidos */
 function cargarSelectsEquipos(equipos) {
+  // Llena selects para creación de partidos y añade dataset con foto (posible uso futuro para previews).
   const selectLocal = document.getElementById('partido-local');
   const selectVisitante = document.getElementById('partido-visitante');
   const options = equipos.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
@@ -168,6 +184,7 @@ function cargarSelectsEquipos(equipos) {
 
 /** Muestra tarjetas de equipos en el tab Equipos */
 function mostrarEquiposTab(equipos) {
+  // Genera tarjetas clicables para entrar a edición individual de cada equipo.
   const container = document.getElementById('equipos-lista-tab');
   container.innerHTML = equipos.map(equipo => {
     const foto = equipo.foto || `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23667eea' width='100' height='100'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='white' font-size='40' font-weight='bold'%3E${equipo.id}%3C/text%3E%3C/svg%3E`;
@@ -181,6 +198,7 @@ function mostrarEquiposTab(equipos) {
 
 /** Lista de partidos por jornada en la vista Liga */
 function mostrarPartidos(partidos, equipos) {
+  // Agrupa partidos por jornada para una lectura cronológica y muestra estado (jugado / con stats / pendiente).
   const container = document.getElementById('partidos-lista');
   if (!Array.isArray(partidos) || partidos.length === 0) {
     container.innerHTML = '<div class="empty-state"><p>No hay partidos programados</p></div>';

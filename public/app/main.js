@@ -8,6 +8,11 @@ import { cambiarTab, mostrarCrearLiga, volverInicio, volverALiga } from './views
 import { actualizarPreviewPartidos, handleAgregarPartido, registrarResultado, verDetallePartido, editarPartido, handleGuardarDetallePartido } from './matches.js';
 import { generarPronosticos, verDetallePronostico } from './predictions.js';
 
+// Patrón de inicialización:
+// - Se espera que predictor.js defina la clase global PronosticadorPartidos antes de este módulo.
+// - Se instancia y se expone en window para facilitar acceso desde otros módulos sin múltiples importaciones circulares.
+// - Se agregan listeners a formularios usando optional chaining para tolerar vistas no presentes.
+
 // Inicialización al cargar el DOM
 document.addEventListener('DOMContentLoaded', () => {
   try {
@@ -36,6 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Exponer funciones necesarias para handlers inline del HTML y HTML generado
 Object.assign(window, {
+  // Exposición controlada al scope global para soportar atributos onclick heredados del HTML estático.
+  // Esto evita acoplar la estructura HTML a un framework y mantiene simplicidad.
   // Navegación
   mostrarCrearLiga, volverInicio, volverALiga, cambiarTab,
   // Ligas y equipos
