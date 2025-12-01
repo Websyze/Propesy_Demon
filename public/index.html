@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Ligas Deportivas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚽ Gestor de Ligas Deportivas</h1>
+        </header>
+
+        <!-- Vista: Inicio -->
+        <div id="vista-inicio" class="vista activa">
+            <div class="hero">
+                <h2>Bienvenido</h2>
+                <p>Crea y administra tus ligas deportivas</p>
+                <button onclick="mostrarCrearLiga()" class="btn btn-primary">
+                    ➕ Crear Nueva Liga
+                </button>
+            </div>
+
+            <div class="ligas-lista">
+                <h3>Mis Ligas</h3>
+                <div id="ligas-container"></div>
+            </div>
+        </div>
+
+        <!-- Vista: Crear Liga -->
+        <div id="vista-crear-liga" class="vista">
+            <button onclick="volverInicio()" class="btn btn-secondary">← Volver</button>
+            <h2>Crear Nueva Liga</h2>
+            <form id="form-crear-liga">
+                <div class="form-group">
+                    <label>Nombre de la Liga:</label>
+                    <input type="text" id="nombre-liga" required placeholder="Ej: Liga Premier">
+                </div>
+                <div class="form-group">
+                    <label>Número de Equipos:</label>
+                    <input type="number" id="num-equipos" min="2" max="20" value="4" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Crear Liga</button>
+            </form>
+        </div>
+
+        <!-- Vista: Editar Equipos -->
+        <div id="vista-editar-equipos" class="vista">
+            <button onclick="volverInicio()" class="btn btn-secondary">← Volver</button>
+            <h2>Editar Equipos</h2>
+            <p style="color: #666; margin-bottom: 20px;">Puedes agregar una foto a cada equipo (opcional)</p>
+            <form id="form-editar-equipos">
+                <div id="equipos-inputs" class="equipos-grid"></div>
+                <button type="submit" class="btn btn-primary">Guardar y Continuar</button>
+            </form>
+        </div>
+
+        <!-- Vista: Liga -->
+        <div id="vista-liga" class="vista">
+            <button onclick="volverInicio()" class="btn btn-secondary">← Volver</button>
+            <h2 id="liga-titulo"></h2>
+            
+            <div class="tabs">
+                <button class="tab-btn activa" onclick="cambiarTab('tabla')">📊 Tabla</button>
+                <button class="tab-btn" onclick="cambiarTab('equipos')">👥 Equipos</button>
+                <button class="tab-btn" onclick="cambiarTab('partidos')">📅 Partidos</button>
+                <button class="tab-btn" onclick="cambiarTab('pronosticos')">🔮 Pronósticos</button>
+            </div>
+
+            <!-- Tab: Tabla de Posiciones -->
+            <div id="tab-tabla" class="tab-content activa">
+                <h3>Tabla de Posiciones</h3>
+                <div class="tabla-wrapper">
+                    <table id="tabla-posiciones">
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Equipo</th>
+                                <th>PJ</th>
+                                <th>PG</th>
+                                <th>PE</th>
+                                <th>PP</th>
+                                <th>GF</th>
+                                <th>GC</th>
+                                <th>DG</th>
+                                <th>Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Equipos -->
+            <div id="tab-equipos" class="tab-content">
+                <h3>Equipos</h3>
+                <div id="equipos-lista-tab" class="equipos-grid"></div>
+            </div>
+
+            <!-- Tab: Acomodar Partidos -->
+            <div id="tab-partidos" class="tab-content">
+                <h3>Acomodar Partidos</h3>
+                <form id="form-agregar-partido">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Equipo Local:</label>
+                            <select id="partido-local" required onchange="actualizarPreviewPartidos()"></select>
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="form-group">
+                            <label>Equipo Visitante:</label>
+                            <select id="partido-visitante" required onchange="actualizarPreviewPartidos()"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Jornada:</label>
+                            <input type="number" id="partido-jornada" min="1" value="1" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Vista previa del partido -->
+                    <div id="preview-partido" style="display: none; margin: 20px 0; padding: 20px; background: #f0f4ff; border-radius: 10px;">
+                        <h4 style="text-align: center; margin-bottom: 15px; color: #667eea;">Vista previa del partido</h4>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+                            <div style="text-align: center;">
+                                <img id="preview-logo-local" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 2px solid #667eea;">
+                                <p id="preview-nombre-local" style="margin-top: 10px; font-weight: 600;"></p>
+                            </div>
+                            <div style="font-weight: bold; color: #667eea; font-size: 1.3em;">VS</div>
+                            <div style="text-align: center;">
+                                <img id="preview-logo-visitante" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 2px solid #764ba2;">
+                                <p id="preview-nombre-visitante" style="margin-top: 10px; font-weight: 600;"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Agregar Partido</button>
+                </form>
+
+                <div id="partidos-lista"></div>
+            </div>
+
+            <!-- Tab: Pronósticos -->
+            <div id="tab-pronosticos" class="tab-content">
+                <h3>🔮 Pronósticos de Próximos Partidos</h3>
+                <div id="pronosticos-container">
+                    <div id="pronosticos-loading" style="text-align: center; color: #666; padding: 20px;">
+                        <p>Analizando estadísticas y generando pronósticos...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista: Detalles del Partido -->
+        <div id="vista-detalle-partido" class="vista">
+            <button onclick="volverALiga()" class="btn btn-secondary">← Volver a la Liga</button>
+            <h2 id="detalle-partido-titulo"></h2>
+            
+            <form id="form-detalle-partido">
+                <div class="partido-comparativo">
+                    <!-- Columna Equipo Local -->
+                    <div class="columna-equipo">
+                        <div class="equipo-header">
+                            <h3 id="titulo-stats-local">Liverpool</h3>
+                            <div class="goles-display" id="goles-local-display">0</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Goles 1er Tiempo:</label>
+                            <input type="number" id="local-goles-primero" min="0" step="1" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Goles 2do Tiempo:</label>
+                            <input type="number" id="local-goles-segundo" min="0" step="1" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Remates:</label>
+                            <input type="number" id="local-remates" min="0" step="0.5" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Remates al arco:</label>
+                            <input type="number" id="local-remates-arco" min="0" step="0.5" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Posesión (%):</label>
+                            <input type="number" id="local-posesion" min="0" max="100" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Pases:</label>
+                            <input type="number" id="local-pases" min="0" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Precisión de pases (%):</label>
+                            <input type="number" id="local-precision-pases" min="0" max="100" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Faltas:</label>
+                            <input type="number" id="local-faltas" min="0" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Tarjetas amarillas:</label>
+                            <input type="number" id="local-amarillas" min="0" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Tarjetas rojas:</label>
+                            <input type="number" id="local-rojas" min="0" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Fuera de lugar:</label>
+                            <input type="number" id="local-fuera-lugar" min="0" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Tiros de esquina:</label>
+                            <input type="number" id="local-corners" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Columna Equipo Visitante -->
+                    <div class="columna-equipo">
+                        <div class="equipo-header">
+                            <h3 id="titulo-stats-visitante">City</h3>
+                            <div class="goles-display" id="goles-visitante-display">0</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Goles 1er Tiempo:</label>
+                            <input type="number" id="visitante-goles-primero" min="0" step="1" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Goles 2do Tiempo:</label>
+                            <input type="number" id="visitante-goles-segundo" min="0" step="1" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Remates:</label>
+                            <input type="number" id="visitante-remates" min="0" step="0.5" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Remates al arco:</label>
+                            <input type="number" id="visitante-remates-arco" min="0" step="0.5" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Posesión (%):</label>
+                            <input type="number" id="visitante-posesion" min="0" max="100" step="0.5" value="0" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Pases:</label>
+                            <input type="number" id="visitante-pases" min="0" step="0.5" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Precisión de pases (%):</label>
+                            <input type="number" id="visitante-precision-pases" min="0" max="100" step="0.5" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Faltas:</label>
+                            <input type="number" id="visitante-faltas" min="0" step="0.5" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Tarjetas amarillas:</label>
+                            <input type="number" id="visitante-amarillas" min="0" step="0.5" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Tarjetas rojas:</label>
+                            <input type="number" id="visitante-rojas" min="0" step="0.5" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Fueras de lugar:</label>
+                            <input type="number" id="visitante-fuera-lugar" min="0" step="0.5" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Corners:</label>
+                            <input type="number" id="visitante-corners" min="0" step="0.5" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large">💾 Guardar Estadísticas Completas</button>
+            </form>
+        </div>
+
+        <!-- Vista: Detalle Pronóstico -->
+        <div id="vista-detalle-pronostico" class="vista">
+            <button onclick="volverALiga()" class="btn btn-secondary">← Volver a los Pronósticos</button>
+            <h2 id="detalle-pronostico-titulo"></h2>
+            
+            <div id="detalle-pronostico-contenido"></div>
+        </div>
+
+        <!-- Vista: Editar Equipo Individual -->
+        <div id="vista-editar-equipo" class="vista">
+            <button onclick="volverALiga()" class="btn btn-secondary">← Volver a la Liga</button>
+            <h2 id="editar-equipo-titulo"></h2>
+            
+            <form id="form-editar-equipo">
+                <div class="equipo-edit-container">
+                    <div class="equipo-edit-foto">
+                        <img id="editar-equipo-preview" class="equipo-edit-logo" src="" alt="Logo del equipo">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('editar-equipo-foto-input').click()">📷 Cambiar Foto</button>
+                        <button type="button" class="btn btn-secondary" id="btn-eliminar-foto" onclick="eliminarFotoEquipo()" style="display: none;">🗑️ Eliminar Foto</button>
+                        <input type="file" 
+                               id="editar-equipo-foto-input" 
+                               accept="image/*"
+                               style="display: none;"
+                               onchange="previewFotoEquipo(this)">
+                    </div>
+                    
+                    <div class="equipo-edit-info">
+                        <div class="form-group">
+                            <label>Nombre del Equipo:</label>
+                            <input type="text" id="editar-equipo-nombre" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script src="pronosticos/predictor.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
